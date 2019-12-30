@@ -6,14 +6,13 @@ const face = document.getElementById('face');
 Promise.all(
   [
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-    //faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-    //faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
     faceapi.nets.faceExpressionNet.loadFromUri('/models')
   ]
 ).then(startvideo)
 
 
 function startvideo() {
+  console.info("Models loaded, now I will access to WebCam")
   // 003 - Access to Cam and display it on video DIV
   navigator.getUserMedia(
     { video: {} },
@@ -34,25 +33,22 @@ let statusIcons = {
   surprised: '😳'
 }
 
-// 005 - Add a listener once the Video is played
-video.addEventListener('play', () => {
-  // 006 - Set the default Emoji
+function detectExpression() {
+  // 005 - Set the default Emoji
   face.innerHTML = statusIcons.default
-  // 007 - setInterval to detect face/espression periodically (every 1000 milliseconds)
-  const milliseconds = 2000
+  // 006 - setInterval to detect face/espression periodically (every 500 milliseconds)
+  const milliseconds = 500
   setInterval(async () => {
-    // 008 - Wait to detect face with Expression
+    // 007 - Wait to detect face with Expression
     const detection = await
       faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-        //.withFaceLandmarks()
         .withFaceExpressions()
-    // 009 - detectAllFaces retruns an array of faces with some interesting attributes
+    // 008 - detectAllFaces retruns an array of faces with some interesting attributes
     if (detection.length > 0) {
-      // 010 - walk through all faces detected
+      // 009 - walk through all faces detected
       detection.forEach(element => {
-        console.log(element.expressions)
         /**
-         * 011 - each face element has a expressions attribute
+         * 010 - each face element has a expressions attribute
          * for example:
          * neutral: 0.33032259345054626
          * happy: 0.0004914478631690145
@@ -64,19 +60,23 @@ video.addEventListener('play', () => {
          */
         let status = "";
         let valueStatus = 0.0;
-
         for (const [key, value] of Object.entries(element.expressions)) {
           if (value > valueStatus) {
             status = key
             valueStatus = value;
           }
         }
-        //console.log(status, valueStatus)
-        // 012 - once we have the highest scored expression (status) we display the right Emoji
+        // 011 - once we have the highest scored expression (status) we display the right Emoji
         face.innerHTML = statusIcons[status]
       });
     } else {
+      console.log("No Faces")
       //face.innerHTML = statusIcons.default;
     }
   }, milliseconds);
+}
+
+// 012 - Add a listener once the Video is played
+video.addEventListener('playing', () => {
+  detectExpression()
 })
