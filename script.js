@@ -11,14 +11,14 @@ Promise.all(
 ).then(startvideo)
 
 
-function startvideo() {
+async function startvideo() {
   console.info("Models loaded, now I will access to WebCam")
   // 003 - Access to Cam and display it on video DIV
-  navigator.getUserMedia(
-    { video: {} },
-    stream => video.srcObject = stream,
-    err => console.log(err)
-  )
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: true
+  })
+  video.srcObject = stream
+
 }
 
 // 004 - Define the array with emoji
